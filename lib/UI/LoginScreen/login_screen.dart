@@ -1,6 +1,11 @@
+import 'dart:convert';
+
+import 'package:dil_se_lottry/UI/BuyerScreen/buyer_screen.dart';
+import 'package:dil_se_lottry/UI/SellerScreen/seller_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter_animated_button/flutter_animated_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -11,6 +16,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  String api = "https://hft-backend.onrender.com/seller/generate-id";
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   String _userType = 'Buyer';
@@ -120,7 +126,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Colors.white
                     ),
                     text: "Login",
-                    onPress: (){}
+                    onPress: (){
+                      if(_isBuyer){
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const BuyerScreen())
+                        );
+                      } else {
+                        fetchSellerID();
+                      }
+                    }
                   ),
                   AnimatedButton(
                     height: 50,
@@ -147,5 +162,23 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+  Future<void> fetchSellerID() async {
+    final uri = Uri.parse(api);
+    try {
+      final response = await http.get(uri);
+      if(response.statusCode == 200){
+        Map<String, dynamic> responseData = jsonDecode(response.body);
+        String id = responseData['sellerId'];
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SellerScreen(qRSellerID: id))
+        );
+      } else {
+        print("Request failed with Status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 }
