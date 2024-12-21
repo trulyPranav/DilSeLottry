@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:uuid/uuid.dart';
 import 'package:dil_se_lottry/UI/BuyerScreen/buyer_screen.dart';
 import 'package:dil_se_lottry/UI/SellerScreen/seller_screen.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
   String _userType = 'Buyer';
   bool _isBuyer = true;
+  dynamic uuid = Uuid();
   final List<Map<String, dynamic>> _userTypes = [
     {'label': 'Buyer', 'value': 'Buyer', 'icon': Icons.person},
     {'label': 'Vendor', 'value': 'Vendor', 'icon': Icons.store},
@@ -128,9 +129,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     text: "Login",
                     onPress: (){
                       if(_isBuyer){
+                        final String _id = uuid.v4();
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => const BuyerScreen())
+                          MaterialPageRoute(builder: (context) => BuyerScreen(buyerID: _id))
                         );
                       } else {
                         fetchSellerID();
