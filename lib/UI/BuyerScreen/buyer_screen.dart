@@ -74,7 +74,7 @@ class _BuyerScreenState extends State<BuyerScreen> {
                 future: _fetchLotteryFuture, // Future from the fetchSellerLotteries function
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
+                    return Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
                     return Text("Error: ${snapshot.error}");
                   } else {
@@ -102,7 +102,7 @@ class _BuyerScreenState extends State<BuyerScreen> {
         print(responseData); // Print response for debugging
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => LotteryScreen()),
+          MaterialPageRoute(builder: (context) => LotteryScreen(sellerID: _result,)),
         );
       } else {
         print('Error: ${response.statusCode}');
