@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dil_se_lottry/UI/BuyerScreen/LotteryScreen/lottery_enlarged.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:dil_se_lottry/Models/lottery_data.dart';
@@ -52,23 +53,40 @@ class _LotteryScreenState extends State<LotteryScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Lotteries")),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator()) // Show a loading spinner while fetching
-          : ListView.builder(
-              itemCount: _lotteries.length,
-              itemBuilder: (context, index) {
-                // Extract lottery data
-                final lottery = _lotteries[index];
-                return ListTile(
-                  leading: Image.network(lottery.image), // Display the lottery image
-                  title: Text(lottery.id), // Display the lottery id
-                  subtitle: Text("Value: \$${lottery.value}"), // Display the value
-                );
-              },
-            ),
-    );
-  }
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(title: Text("Lotteries")),
+    body: _isLoading
+        ? Center(child: CircularProgressIndicator()) // Show a loading spinner while fetching
+        : ListView.builder(
+            itemCount: _lotteries.length,
+            itemBuilder: (context, index) {
+              // Extract lottery data
+              final lottery = _lotteries[index];
+              return ListTile(
+                leading: Image.network(lottery.image), // Display the lottery image
+                title: Text(lottery.id), // Display the lottery id
+                subtitle: Text("Value: \$${lottery.value}"), // Display the value
+                onTap: () {
+                  _onLotteryTap(context,lottery,widget.sellerID);
+                },
+              );
+            },
+          ),
+  );
+}
+
+void _onLotteryTap(BuildContext context, Lottery lottery, sellerID) {
+  // Show enlarged image and serial numbers
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => LotteryDetailScreen(
+        sellerID: sellerID,
+        lottery: lottery,
+      ),
+    ),
+  );
+}
+
 }

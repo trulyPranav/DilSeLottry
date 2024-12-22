@@ -12,8 +12,6 @@ class QrCodeScanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String _res;
-    String api = "https://hft-backend.onrender.com/seller/";
     return MobileScanner(
       controller: controller,
       onDetect: (BarcodeCapture capture) async {
