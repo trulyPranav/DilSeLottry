@@ -7,9 +7,9 @@ import 'package:dil_se_lottry/Models/lottery_data.dart';
 class LotteryDetailScreen extends StatefulWidget {
   final Lottery lottery;
   final String sellerID;
-
+  final String publicAddress;
   const LotteryDetailScreen(
-      {super.key, required this.lottery, required this.sellerID});
+      {super.key, required this.lottery, required this.sellerID, required this.publicAddress});
 
   @override
   _LotteryDetailScreenState createState() => _LotteryDetailScreenState();
@@ -19,11 +19,12 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
   bool _isLoading = true;
   List<String> _serialNumbers = [];
   late final int lotteryAmount;
-
+  late final String lotteryUrl;
   @override
   void initState() {
     super.initState();
     lotteryAmount = widget.lottery.value;
+    lotteryUrl = widget.lottery.url;
     _fetchSerialNumbers();
   }
 
@@ -83,7 +84,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
             TextButton(
               child: Text("Pay"),
               onPressed: () {
-                _processPayment(serial);
+                _processPayment(serial, widget.publicAddress, widget.sellerID, lotteryUrl);
                 Navigator.of(context).pop();
               },
             ),
@@ -93,41 +94,91 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
     );
   }
 
-  // Function to deny payment for a serial number
   void _denyPayment(String serial) {
-    // Make API call to deny payment for the serial number
-    final url =
-        "https://hft-backend.onrender.com/deny-payment/$serial"; // Example deny URL
-    http.post(Uri.parse(url)).then((response) {
-      if (response.statusCode == 200) {
-        // Handle success response
+    // final url =
+    //     "https://hft-backend.onrender.com/seller/payment/failure";
+    // http.post(Uri.parse(url)).then((response) {
+    //   if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Payment denied for $serial")));
-      } else {
-        // Handle error response
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Failed to deny payment")));
-      }
-    });
+    //   } else {
+    //     ScaffoldMessenger.of(context)
+    //         .showSnackBar(SnackBar(content: Text("Failed to deny payment")));
+    //   }
+    // });
   }
+void _processPayment(
+    String serial,
+    String publicAddress,
+    String sellerID,
+    String tokenURI,
+  ) {
+  final url = "https://hft-backend.onrender.com/seller/payment/success/nft-mint";
 
-  // Function to process payment for a serial number (custom logic)
-  void _processPayment(String serial) {
-    // Make API call to process payment for the serial number
-    final url =
-        "https://hft-backend.onrender.com/process-payment/$serial"; // Example payment URL
-    http.post(Uri.parse(url)).then((response) {
-      if (response.statusCode == 200) {
-        // Handle success response
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Payment processed for $serial")));
-      } else {
-        // Handle error response
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Failed to process payment")));
-      }
-    });
-  }
+  // Prepare the payload data
+  final Map<String, dynamic> payload = {
+    'sellerId': sellerID,
+    'tokenURI': tokenURI,
+    'buyerPublicAddress': publicAddress,
+  };
+
+  // Send POST request with JSON body
+  http
+      .post(
+    Uri.parse(url),
+    headers: {
+      'Content-Type': 'application/json', // Inform the server we're sending JSON
+    },
+    body: json.encode(payload), // Convert the map to JSON
+  )
+      .then((response) {
+    if (response.statusCode == 200) {
+      print(response.body);
+      Map<String, dynamic> responseData = jsonDecode(response.body);
+      String nft = responseData['msg'] ?? ''; // Safely handle the 'url'
+
+      // Show a success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Payment processed for serial $serial")),
+      );
+
+      // Show success dialog with the NFT URL
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(
+              "Payment Successful!",
+              style: GoogleFonts.inika(color: Colors.black),
+            ),
+            content: Text(
+              "NFT can be found at $nft",
+              style: GoogleFonts.inika(color: Colors.black),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // Handle error response (non-200 status code)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to process payment")),
+      );
+    }
+  }).catchError((error) {
+    // Handle errors like network issues
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("An error occurred: $error")),
+    );
+  });
+}
 
   @override
   Widget build(BuildContext context) {

@@ -10,7 +10,6 @@ import 'package:flutter_animated_button/flutter_animated_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -129,10 +128,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     text: "Login",
                     onPress: (){
                       if(_isBuyer){
-                        final String _id = uuid.v4();
+                        final String id = uuid.v4();
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => BuyerScreen(buyerID: _id))
+                          MaterialPageRoute(builder: (context) => BuyerScreen(buyerID: id))
                         );
                       } else {
                         fetchSellerID();

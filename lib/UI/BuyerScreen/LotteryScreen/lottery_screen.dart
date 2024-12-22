@@ -6,10 +6,10 @@ import 'package:dil_se_lottry/Models/lottery_data.dart';
 
 class LotteryScreen extends StatefulWidget {
   final String? sellerID;
-
+  final String publicAddress;
   const LotteryScreen({
     required this.sellerID,
-    super.key
+    super.key,required this.publicAddress
   });
   @override
   _LotteryScreenState createState() => _LotteryScreenState();
@@ -26,31 +26,32 @@ class _LotteryScreenState extends State<LotteryScreen> {
     fetchLotteries(); // Fetch the lotteries when the screen is initialized
   }
 
-  Future<void> fetchLotteries() async {
-    try {
-      final response = await http.get(Uri.parse("$api${widget.sellerID}/lotteries"));
-      if (response.statusCode == 200) {
-        // Parse the response body and create a list of Lottery objects
-        List<dynamic> data = jsonDecode(response.body)["message"];
-        setState(() {
-          _lotteries = data.map((item) => Lottery.fromJson(item)).toList();
-          _isLoading = false; // Once data is fetched, stop loading
-        });
-      } else {
-        // Handle errors
-        print("Failed to load lotteries: ${response.statusCode}");
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      // Handle any exceptions
-      print("Error fetching lotteries: $e");
+Future<void> fetchLotteries() async {
+  try {
+    final response = await http.get(Uri.parse("$api${widget.sellerID}/lotteries"));
+    if (response.statusCode == 200) {
+      // Parse the response body and create a list of Lottery objects
+      List<dynamic> data = jsonDecode(response.body)["message"];
+      setState(() {
+        _lotteries = data.map((item) => Lottery.fromJson(item)).toList();
+        _isLoading = false; // Once data is fetched, stop loading
+      });
+    } else {
+      // Handle errors
+      print("Failed to load lotteries: ${response.statusCode}");
       setState(() {
         _isLoading = false;
       });
     }
+  } catch (e) {
+    // Handle any exceptions
+    print("Error fetching lotteries: $e");
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
+
 
   @override
 Widget build(BuildContext context) {
@@ -68,7 +69,7 @@ Widget build(BuildContext context) {
                 title: Text(lottery.id), // Display the lottery id
                 subtitle: Text("Value: \$${lottery.value}"), // Display the value
                 onTap: () {
-                  _onLotteryTap(context,lottery,widget.sellerID);
+                  _onLotteryTap(context,lottery,widget.sellerID, widget.publicAddress);
                 },
               );
             },
@@ -76,7 +77,7 @@ Widget build(BuildContext context) {
   );
 }
 
-void _onLotteryTap(BuildContext context, Lottery lottery, sellerID) {
+void _onLotteryTap(BuildContext context, Lottery lottery, sellerID, publicAddress) {
   // Show enlarged image and serial numbers
   Navigator.push(
     context,
@@ -84,6 +85,7 @@ void _onLotteryTap(BuildContext context, Lottery lottery, sellerID) {
       builder: (context) => LotteryDetailScreen(
         sellerID: sellerID,
         lottery: lottery,
+        publicAddress: publicAddress,
       ),
     ),
   );
